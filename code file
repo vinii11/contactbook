@@ -1,132 +1,129 @@
-public class Contact {
-    private String name;
-    private String phone;
-    private String email;
-    public Contact(String name, String phone, String email) {
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-    }
-public String getName() {
-        return name;
-    }
-public void setName(String name) {
-        this.name = name;
-    }
- public String getPhone() {
-        return phone;
-    }
-public void setPhone(String phone) {
-        this.phone = phone;
-    }
-public String getEmail() {
-        return email;
-    }
-public void setEmail(String email) {
-        this.email = email;
-    }
-    public String toString() {
-        return "Name: " + name + ", Phone: " + phone + ", Email: " + email;
-    }
-}
-import java.util.ArrayList;
-import java.util.Scanner;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class ContactBook {
-    private ArrayList<Contact> contacts = new ArrayList<>();
+public class ContactBookApp extends JFrame {
+    private JTextField nameField, phoneField, emailField;
+    private JButton addButton, editButton, deleteButton;
+    private JTable contactTable;
+    private DefaultTableModel tableModel;
 
-    // Method to add a new contact
-    public void addContact(Contact contact) {
-        contacts.add(contact);
-        System.out.println("Contact added successfully!");
+    public ContactBookApp() {
+        setTitle("Contact Book");
+        setSize(600, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        // Panel for input fields
+        JPanel inputPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        inputPanel.add(new JLabel("Name:"));
+        nameField = new JTextField();
+        inputPanel.add(nameField);
+
+        inputPanel.add(new JLabel("Phone:"));
+        phoneField = new JTextField();
+        inputPanel.add(phoneField);
+
+        inputPanel.add(new JLabel("Email:"));
+        emailField = new JTextField();
+        inputPanel.add(emailField);
+
+        // Panel for buttons
+        JPanel buttonPanel = new JPanel();
+        addButton = new JButton("Add");
+        editButton = new JButton("Edit");
+        deleteButton = new JButton("Delete");
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+
+        // Table for displaying contacts
+        String[] columnNames = {"Name", "Phone", "Email"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+        contactTable = new JTable(tableModel);
+        JScrollPane tableScrollPane = new JScrollPane(contactTable);
+
+        // Layout setup
+        add(inputPanel, BorderLayout.NORTH);
+        add(buttonPanel, BorderLayout.CENTER);
+        add(tableScrollPane, BorderLayout.SOUTH);
+
+        // Button action listeners
+        addButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addContact();
+            }
+        });
+
+        editButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                editContact();
+            }
+        });
+
+        deleteButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                deleteContact();
+            }
+        });
     }
 
-    // Method to display all contacts
-    public void viewContacts() {
-        if (contacts.isEmpty()) {
-            System.out.println("No contacts found.");
+    private void addContact() {
+        String name = nameField.getText();
+        String phone = phoneField.getText();
+        String email = emailField.getText();
+        
+        if (!name.isEmpty() && !phone.isEmpty() && !email.isEmpty()) {
+            tableModel.addRow(new Object[]{name, phone, email});
+            clearFields();
         } else {
-            for (Contact contact : contacts) {
-                System.out.println(contact);
-            }
+            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    // Method to update a contact by name
-    public void updateContact(String name) {
-        for (Contact contact : contacts) {
-            if (contact.getName().equalsIgnoreCase(name)) {
-                Scanner scanner = new Scanner(System.in);
-                System.out.print("Enter new phone number: ");
-                contact.setPhone(scanner.nextLine());
-                System.out.print("Enter new email: ");
-                contact.setEmail(scanner.nextLine());
-                System.out.println("Contact updated successfully!");
-                return;
+    private void editContact() {
+        int selectedRow = contactTable.getSelectedRow();
+        
+        if (selectedRow >= 0) {
+            String name = nameField.getText();
+            String phone = phoneField.getText();
+            String email = emailField.getText();
+
+            if (!name.isEmpty() && !phone.isEmpty() && !email.isEmpty()) {
+                tableModel.setValueAt(name, selectedRow, 0);
+                tableModel.setValueAt(phone, selectedRow, 1);
+                tableModel.setValueAt(email, selectedRow, 2);
+                clearFields();
+            } else {
+                JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             }
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a contact to edit.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        System.out.println("Contact not found.");
     }
 
-    // Method to delete a contact by name
-    public void deleteContact(String name) {
-        for (Contact contact : contacts) {
-            if (contact.getName().equalsIgnoreCase(name)) {
-                contacts.remove(contact);
-                System.out.println("Contact deleted successfully!");
-                return;
-            }
+    private void deleteContact() {
+        int selectedRow = contactTable.getSelectedRow();
+        
+        if (selectedRow >= 0) {
+            tableModel.removeRow(selectedRow);
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a contact to delete.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        System.out.println("Contact not found.");
     }
 
-    // Main method for interaction
+    private void clearFields() {
+        nameField.setText("");
+        phoneField.setText("");
+        emailField.setText("");
+    }
+
     public static void main(String[] args) {
-        ContactBook contactBook = new ContactBook();
-        Scanner scanner = new Scanner(System.in);
-        int choice;
-
-        do {
-            System.out.println("\n--- Contact Book Menu ---");
-            System.out.println("1. Add Contact");
-            System.out.println("2. View Contacts");
-            System.out.println("3. Update Contact");
-            System.out.println("4. Delete Contact");
-            System.out.println("5. Exit");
-            System.out.print("Enter your choice: ");
-            choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
-
-            switch (choice) {
-                case 1:
-                    System.out.print("Enter name: ");
-                    String name = scanner.nextLine();
-                    System.out.print("Enter phone: ");
-                    String phone = scanner.nextLine();
-                    System.out.print("Enter email: ");
-                    String email = scanner.nextLine();
-                    contactBook.addContact(new Contact(name, phone, email));
-                    break;
-                case 2:
-                    contactBook.viewContacts();
-                    break;
-                case 3:
-                    System.out.print("Enter the name of the contact to update: ");
-                    String updateName = scanner.nextLine();
-                    contactBook.updateContact(updateName);
-                    break;
-                case 4:
-                    System.out.print("Enter the name of the contact to delete: ");
-                    String deleteName = scanner.nextLine();
-                    contactBook.deleteContact(deleteName);
-                    break;
-                case 5:
-                    System.out.println("Exiting Contact Book.");
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
-        } while (choice != 5);
-scanner.close();
+        SwingUtilities.invokeLater(() -> {
+            ContactBookApp app = new ContactBookApp();
+            app.setVisible(true);
+        });
     }
 }
